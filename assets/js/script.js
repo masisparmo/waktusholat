@@ -17,7 +17,7 @@ const texts = {
         locationDetecting: "Mendeteksi lokasi...",
         nextPrayerLabel: "Menuju Waktu Berikutnya",
         jadwalTitle: "Jadwal Hari Ini",
-        exportBtnText: "PDF",
+        printBtnText: "Print",
         prohibitedMsgSafe: "Status: Aman (Bukan waktu terlarang sholat)",
         prohibitedMsgDanger: "Peringatan: Memasuki waktu terlarang sholat.",
         nightThirdTitle: "1/3 Malam Terakhir",
@@ -57,7 +57,7 @@ const texts = {
         locationDetecting: "Detecting location...",
         nextPrayerLabel: "Next Prayer In",
         jadwalTitle: "Today's Schedule",
-        exportBtnText: "PDF",
+        printBtnText: "Print",
         prohibitedMsgSafe: "Status: Safe (Not a prohibited prayer time)",
         prohibitedMsgDanger: "Warning: Entering prohibited prayer time.",
         nightThirdTitle: "Last Third of the Night",
@@ -186,34 +186,12 @@ function setupEventListeners() {
         monthlyModal.classList.add('hidden');
     });
 
-    // Export PDF for Monthly Schedule
-    const exportMonthlyPdfBtn = document.getElementById('export-monthly-pdf-btn');
-    exportMonthlyPdfBtn.addEventListener('click', () => {
-        if (typeof html2pdf === 'undefined') {
-            alert(appState.lang === 'id' ? "Library PDF belum dimuat." : "PDF library not loaded.");
-            return;
-        }
-
-        const element = document.createElement('div');
-        const titleText = document.getElementById('monthly-title').textContent;
-        const tableHtml = document.getElementById('schedule-table-export').outerHTML;
-
-        element.innerHTML = `
-            <div style="padding: 20px; font-family: sans-serif;">
-                <h2 style="text-align: center; margin-bottom: 20px;">${titleText}</h2>
-                ${tableHtml}
-            </div>
-        `;
-
-        const opt = {
-            margin:       0.5,
-            filename:     `Jadwal-Sholat-30-Hari-${new Date().toISOString().split('T')[0]}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save();
+    // Print Monthly Schedule
+    const printMonthlyBtn = document.getElementById('print-monthly-btn');
+    printMonthlyBtn.addEventListener('click', () => {
+        document.body.classList.add('print-monthly-mode');
+        window.print();
+        document.body.classList.remove('print-monthly-mode');
     });
 
     // Export Excel for Monthly Schedule
@@ -360,24 +338,12 @@ function setupEventListeners() {
         }
     });
 
-    // Export PDF Toggle
-    const exportPdfBtn = document.getElementById('export-pdf-btn');
-    exportPdfBtn.addEventListener('click', () => {
-        if (typeof html2pdf === 'undefined') {
-            alert(appState.lang === 'id' ? "Library PDF belum dimuat." : "PDF library not loaded.");
-            return;
-        }
-
-        const element = document.getElementById('main-content');
-        const opt = {
-            margin:       1,
-            filename:     `Jadwal-Sholat-${new Date().toISOString().split('T')[0]}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save();
+    // Print Today's Schedule Toggle
+    const printTodayBtn = document.getElementById('print-today-btn');
+    printTodayBtn.addEventListener('click', () => {
+        document.body.classList.add('print-today-mode');
+        window.print();
+        document.body.classList.remove('print-today-mode');
     });
 
     // Language Toggle
@@ -442,7 +408,7 @@ function updateUIText() {
     document.getElementById('app-title').textContent = t.appTitle;
     document.getElementById('next-prayer-label').textContent = t.nextPrayerLabel;
     document.getElementById('jadwal-title').textContent = t.jadwalTitle;
-    document.getElementById('export-btn-text').textContent = t.exportBtnText;
+    document.getElementById('print-btn-text').textContent = t.printBtnText;
 
     // Prohibited message is dynamically updated in checkProhibitedTimes
     document.getElementById('night-third-title').textContent = t.nightThirdTitle;

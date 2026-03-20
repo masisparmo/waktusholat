@@ -590,3 +590,79 @@ body.tv-mode .prayer-time { font-size: 3rem; }
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* --- Print Styles --- */
+@media print {
+    body {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    .sticky-header,
+    .alerts-section,
+    .widget-section,
+    .actions,
+    .next-prayer-card,
+    .timeline-container,
+    .table-actions,
+    .close-btn {
+        display: none !important;
+    }
+
+    .container {
+        padding: 0;
+        margin: 0;
+        max-width: none;
+    }
+
+    /* Today's Schedule Print */
+    body.print-today-mode .prayer-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    body.print-today-mode .prayer-card {
+        border: 1px solid #ccc;
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    /* Monthly Schedule Print */
+    body.print-monthly-mode #main-content,
+    body.print-monthly-mode header {
+        display: none !important;
+    }
+
+    body.print-monthly-mode #monthly-modal {
+        position: static;
+        background: transparent;
+        display: block !important;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    body.print-monthly-mode .modal-content {
+        box-shadow: none;
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+        transform: none;
+        overflow: visible;
+        max-height: none;
+    }
+
+    body.print-monthly-mode table.schedule-table {
+        font-size: 10pt;
+    }
+
+    body.print-monthly-mode table.schedule-table th {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body.print-monthly-mode table.schedule-table tr.today-row {
+        background-color: transparent !important;
+        font-weight: normal;
+    }
+}
