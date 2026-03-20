@@ -8,7 +8,8 @@ const defaultConfig = {
     method: 'Singapore', // Default to Kemenag/Singapore
     lang: 'id',
     theme: 'dark',
-    notifEnabled: false
+    notifEnabled: false,
+    hijriOffset: 0
 };
 
 const texts = {
@@ -29,6 +30,7 @@ const texts = {
         widgetAyyamulTitle: "Ayyamul Bidh Bulan Ini",
         settingsTitle: "Pengaturan",
         labelMethod: "Metode Perhitungan",
+        labelHijriOffset: "Koreksi Hijriyah (Hari)",
         labelLocation: "Lokasi (Lat, Lng)",
         btnDetectText: "Deteksi Otomatis",
         labelNotifications: "Notifikasi",
@@ -69,6 +71,7 @@ const texts = {
         widgetAyyamulTitle: "Ayyamul Bidh This Month",
         settingsTitle: "Settings",
         labelMethod: "Calculation Method",
+        labelHijriOffset: "Hijri Adjustment (Days)",
         labelLocation: "Location (Lat, Lng)",
         btnDetectText: "Auto Detect",
         labelNotifications: "Notifications",
@@ -224,6 +227,7 @@ function setupEventListeners() {
 
     settingsBtn.addEventListener('click', () => {
         document.getElementById('calc-method').value = appState.method;
+        document.getElementById('hijri-offset').value = appState.hijriOffset || 0;
         document.getElementById('lat-input').value = appState.lat;
         document.getElementById('lng-input').value = appState.lng;
         if (appState.cityName) {
@@ -285,11 +289,13 @@ function setupEventListeners() {
         const newLat = parseFloat(document.getElementById('lat-input').value);
         const newLng = parseFloat(document.getElementById('lng-input').value);
         const newMethod = document.getElementById('calc-method').value;
+        const newHijriOffset = parseInt(document.getElementById('hijri-offset').value, 10);
 
         if (!isNaN(newLat) && !isNaN(newLng)) {
             appState.lat = newLat;
             appState.lng = newLng;
             appState.method = newMethod;
+            appState.hijriOffset = newHijriOffset;
             appState.cityName = selectedCityName; // Will be null if coordinates typed manually
 
             await savePreferences();
@@ -419,6 +425,7 @@ function updateUIText() {
     document.getElementById('widget-ayyamul-title').textContent = t.widgetAyyamulTitle;
     document.getElementById('settings-title').textContent = t.settingsTitle;
     document.getElementById('label-method').textContent = t.labelMethod;
+    document.getElementById('label-hijri-offset').textContent = t.labelHijriOffset;
     document.getElementById('label-location').textContent = t.labelLocation;
     document.getElementById('btn-detect-text').textContent = t.btnDetectText;
     document.getElementById('label-notifications').textContent = t.labelNotifications;
@@ -583,6 +590,10 @@ function renderPrayerTimesGrid() {
 
 function calculateHijriDate() {
     const now = new Date();
+    if (appState.hijriOffset !== 0) {
+        now.setDate(now.getDate() + parseInt(appState.hijriOffset, 10));
+    }
+
     // Use Intl.DateTimeFormat to parse out parts of the Hijri date
     const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', {
         day: 'numeric',
