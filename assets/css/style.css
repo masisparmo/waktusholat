@@ -227,6 +227,7 @@ button {
 .timeline-container {
     margin-top: 2rem;
     padding: 0 1rem;
+    overflow: hidden; /* Ensure timeline doesn't cause x-scroll on mobile */
 }
 
 .timeline-bar {
@@ -253,12 +254,14 @@ button {
     height: 3rem;
     font-size: 0.75rem;
     color: var(--text-muted);
+    overflow: visible;
 }
 
 .timeline-labels span {
     position: absolute;
     transform: translateX(-50%);
     white-space: nowrap;
+    z-index: 10;
 }
 
 .timeline-labels span:first-child {
@@ -307,7 +310,49 @@ button {
     background-color: rgba(245, 158, 11, 0.1);
 }
 
-.alert-box svg { flex-shrink: 0; }
+.alert-box svg { flex-shrink: 0; align-self: flex-start; margin-top: 0.2rem; }
+
+.prohibited-list {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+.prohibited-list li {
+    margin-top: 0.25rem;
+    color: var(--text-secondary);
+}
+
+/* --- Prohibited Times Section --- */
+.prohibited-times-section {
+    margin-bottom: 2rem;
+}
+
+.prohibited-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.prohibited-card {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+}
+
+.prohibited-card .prohibited-name {
+    font-size: 0.95rem;
+}
+
+.prohibited-card .prohibited-time {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+    text-align: right;
+    white-space: nowrap;
+}
 
 /* --- Prayer Times Grid --- */
 .prayer-times-section { margin-bottom: 2rem; }

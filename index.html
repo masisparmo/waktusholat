@@ -97,13 +97,37 @@
             </div>
         </section>
 
+        <!-- Prohibited Times Section -->
+        <section class="prohibited-times-section" style="padding: 0 1rem;">
+            <h3 class="section-title mb-1 text-md" style="color: var(--text-muted);">Waktu Terlarang Sholat</h3>
+            <div class="prohibited-grid">
+                <div class="prohibited-card">
+                    <span class="prohibited-name text-muted">Setelah Syuruq</span>
+                    <span class="prohibited-time font-bold" id="prohibited-time-syuruq">--:-- &mdash; --:--</span>
+                </div>
+                <div class="prohibited-card">
+                    <span class="prohibited-name text-muted">Tengah Hari</span>
+                    <span class="prohibited-time font-bold" id="prohibited-time-zawal">--:-- &mdash; --:--</span>
+                </div>
+                <div class="prohibited-card">
+                    <span class="prohibited-name text-muted">Sebelum Maghrib</span>
+                    <span class="prohibited-time font-bold" id="prohibited-time-sunset">--:-- &mdash; --:--</span>
+                </div>
+            </div>
+        </section>
+
         <!-- Alerts & Badges -->
         <section class="alerts-section" id="alerts-container">
-            <!-- Prohibited Times Alert -->
-            <div id="prohibited-alert" class="alert-box alert-success">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="prohibited-icon-safe"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="prohibited-icon-danger" style="display:none;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span id="prohibited-msg">Status: Waktu Aman untuk Sholat</span>
+            <!-- Prohibited Popup Banner -->
+            <div id="prohibited-popup" class="alert-box alert-danger hidden" style="margin-bottom: 1rem; border: 2px solid var(--danger-500);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger-500);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                    <strong class="text-md" style="color: var(--danger-500); display: block; margin-bottom: 0.25rem;">PERINGATAN: Waktu Terlarang Sholat</strong>
+                    <p class="text-small" style="color: var(--text-primary); margin-bottom: 0.5rem;" id="prohibited-popup-msg">Saat ini memasuki waktu terlarang untuk melaksanakan sholat sunnah mutlak.</p>
+                    <p class="text-small text-muted" style="font-style: italic; border-left: 2px solid var(--danger-500); padding-left: 0.5rem;">
+                        "Ada tiga waktu di mana Rasulullah melarang kami untuk sholat dan menguburkan orang mati: Saat matahari terbit hingga meninggi, saat matahari tepat di tengah-tengah (berada di puncak) hingga ia mulai condong, dan saat matahari mulai terbenam hingga benar-benar terbenam." <br><strong>(HR. Muslim No. 831 dari 'Uqbah bin 'Amir)</strong>
+                    </p>
+                </div>
             </div>
 
             <!-- 1/3 Night Badge -->

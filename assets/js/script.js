@@ -689,7 +689,6 @@ function updateAyyamulBidhWidget() {
 function checkProhibitedTimes() {
     if (!adhanTimes) return;
     const now = new Date();
-    const alertBox = document.getElementById('prohibited-alert');
     let isProhibited = false;
 
     // 1. Syuruq to +15 mins
@@ -710,22 +709,17 @@ function checkProhibitedTimes() {
     if (now >= zenithStart && now <= zenithEnd) isProhibited = true;
     if (now >= sunsetStart && now < adhanTimes.maghrib) isProhibited = true;
 
-    const msgElem = document.getElementById('prohibited-msg');
-    const iconSafe = document.getElementById('prohibited-icon-safe');
-    const iconDanger = document.getElementById('prohibited-icon-danger');
+    // Update the static prohibited times section
+    document.getElementById('prohibited-time-syuruq').innerHTML = `${formatTime(adhanTimes.sunrise)} &mdash; ${formatTime(syuruqEnd)}`;
+    document.getElementById('prohibited-time-zawal').innerHTML = `${formatTime(zenithStart)} &mdash; ${formatTime(zenithEnd)}`;
+    document.getElementById('prohibited-time-sunset').innerHTML = `${formatTime(sunsetStart)} &mdash; ${formatTime(adhanTimes.maghrib)}`;
+
+    const popupAlert = document.getElementById('prohibited-popup');
 
     if (isProhibited) {
-        alertBox.classList.remove('alert-success');
-        alertBox.classList.add('alert-danger');
-        msgElem.textContent = texts[appState.lang].prohibitedMsgDanger;
-        iconSafe.style.display = 'none';
-        iconDanger.style.display = 'block';
+        popupAlert.classList.remove('hidden');
     } else {
-        alertBox.classList.add('alert-success');
-        alertBox.classList.remove('alert-danger');
-        msgElem.textContent = texts[appState.lang].prohibitedMsgSafe;
-        iconDanger.style.display = 'none';
-        iconSafe.style.display = 'block';
+        popupAlert.classList.add('hidden');
     }
 }
 
