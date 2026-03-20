@@ -172,6 +172,69 @@ async function attemptAutoLocation() {
 
 // --- UI / Event Listeners Setup ---
 function setupEventListeners() {
+    // Monthly Modal
+    const monthlyBtn = document.getElementById('monthly-btn');
+    const monthlyModal = document.getElementById('monthly-modal');
+    const closeMonthly = document.getElementById('close-monthly');
+
+    monthlyBtn.addEventListener('click', () => {
+        generateMonthlySchedule();
+        monthlyModal.classList.remove('hidden');
+    });
+
+    closeMonthly.addEventListener('click', () => {
+        monthlyModal.classList.add('hidden');
+    });
+
+    // Export PDF for Monthly Schedule
+    const exportMonthlyPdfBtn = document.getElementById('export-monthly-pdf-btn');
+    exportMonthlyPdfBtn.addEventListener('click', () => {
+        if (typeof html2pdf === 'undefined') {
+            alert(appState.lang === 'id' ? "Library PDF belum dimuat." : "PDF library not loaded.");
+            return;
+        }
+
+        const element = document.createElement('div');
+        const titleText = document.getElementById('monthly-title').textContent;
+        const tableHtml = document.getElementById('schedule-table-export').outerHTML;
+
+        element.innerHTML = `
+            <div style="padding: 20px; font-family: sans-serif;">
+                <h2 style="text-align: center; margin-bottom: 20px;">${titleText}</h2>
+                ${tableHtml}
+            </div>
+        `;
+
+        const opt = {
+            margin:       0.5,
+            filename:     `Jadwal-Sholat-30-Hari-${new Date().toISOString().split('T')[0]}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    });
+
+    // Export Excel for Monthly Schedule
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    exportExcelBtn.addEventListener('click', () => {
+        if (typeof XLSX === 'undefined') {
+            alert(appState.lang === 'id' ? "Library Excel belum dimuat." : "Excel library not loaded.");
+            return;
+        }
+
+        const table = document.getElementById('schedule-table-export');
+        const wb = XLSX.utils.table_to_book(table, {sheet: "Jadwal Sholat"});
+
+        const titleText = document.getElementById('monthly-title').textContent;
+        // Optional: Prepend a row with the title, but standard table export handles the table nicely.
+        // We'll just use the title for the filename.
+        const filename = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+        XLSX.writeFile(wb, filename);
+    });
+
     // Settings Modal
     const settingsBtn = document.getElementById('settings-btn');
     const settingsModal = document.getElementById('settings-modal');
@@ -403,6 +466,80 @@ function updateUIText() {
     document.getElementById('label-asr').textContent = t.prayerNames.asr;
     document.getElementById('label-maghrib').textContent = t.prayerNames.maghrib;
     document.getElementById('label-isha').textContent = t.prayerNames.isha;
+}
+
+// --- Monthly Schedule Generation ---
+
+function generateMonthlySchedule() {
+    if (typeof adhan === 'undefined') return;
+
+    const container = document.getElementById('monthly-table-container');
+    const title = document.getElementById('monthly-title');
+    const now = new Date();
+
+    // Set dynamic title
+    const monthYearOptions = { month: 'long', year: 'numeric' };
+    const locale = appState.lang === 'id' ? 'id-ID' : 'en-US';
+    const monthYearStr = now.toLocaleDateString(locale, monthYearOptions);
+    const locationStr = appState.cityName ? appState.cityName : `${appState.lat.toFixed(4)}, ${appState.lng.toFixed(4)}`;
+
+    title.textContent = appState.lang === 'id'
+        ? `Jadwal Sholat ${monthYearStr} - ${locationStr}`
+        : `Prayer Times ${monthYearStr} - ${locationStr}`;
+
+    const coordinates = new adhan.Coordinates(appState.lat, appState.lng);
+    let methodParams = adhan.CalculationMethod.Singapore(); // Default
+    switch(appState.method) {
+        case 'MuslimWorldLeague': methodParams = adhan.CalculationMethod.MuslimWorldLeague(); break;
+        case 'Egyptian': methodParams = adhan.CalculationMethod.Egyptian(); break;
+        case 'UmmAlQura': methodParams = adhan.CalculationMethod.UmmAlQura(); break;
+        case 'Karachi': methodParams = adhan.CalculationMethod.Karachi(); break;
+        case 'ISNA': methodParams = adhan.CalculationMethod.NorthAmerica(); break;
+        case 'Singapore': methodParams = adhan.CalculationMethod.Singapore(); break;
+    }
+
+    let tableHTML = `
+        <table class="schedule-table" id="schedule-table-export">
+            <thead>
+                <tr>
+                    <th>${appState.lang === 'id' ? 'Tanggal' : 'Date'}</th>
+                    <th>${texts[appState.lang].prayerNames.fajr}</th>
+                    <th>${texts[appState.lang].prayerNames.sunrise}</th>
+                    <th>${texts[appState.lang].prayerNames.dhuhr}</th>
+                    <th>${texts[appState.lang].prayerNames.asr}</th>
+                    <th>${texts[appState.lang].prayerNames.maghrib}</th>
+                    <th>${texts[appState.lang].prayerNames.isha}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    // Generate 30 days starting from today
+    for (let i = 0; i < 30; i++) {
+        const targetDate = new Date(now.getTime());
+        targetDate.setDate(now.getDate() + i);
+
+        const pt = new adhan.PrayerTimes(coordinates, targetDate, methodParams);
+        const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+        const dateStr = targetDate.toLocaleDateString(locale, dateOptions);
+
+        const isToday = i === 0;
+
+        tableHTML += `
+            <tr class="${isToday ? 'today-row' : ''}">
+                <td>${dateStr}</td>
+                <td>${formatTime(pt.fajr)}</td>
+                <td>${formatTime(pt.sunrise)}</td>
+                <td>${formatTime(pt.dhuhr)}</td>
+                <td>${formatTime(pt.asr)}</td>
+                <td>${formatTime(pt.maghrib)}</td>
+                <td>${formatTime(pt.isha)}</td>
+            </tr>
+        `;
+    }
+
+    tableHTML += `</tbody></table>`;
+    container.innerHTML = tableHTML;
 }
 
 // --- Core Calculations ---

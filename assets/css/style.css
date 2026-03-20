@@ -405,7 +405,15 @@ button {
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
     transform: translateY(0);
     transition: transform 0.3s;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
+
+.modal-content.modal-large {
+    max-width: 800px;
+}
+
 .modal.hidden .modal-content {
     transform: translateY(-20px);
 }
@@ -428,6 +436,46 @@ button {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    overflow-y: auto;
+}
+
+/* --- Table Styles --- */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+
+table.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+table.schedule-table th, table.schedule-table td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    text-align: center;
+}
+
+table.schedule-table th {
+    background-color: var(--bg-tertiary);
+    font-weight: 600;
+}
+
+table.schedule-table tr:nth-child(even) {
+    background-color: var(--bg-primary);
+}
+
+table.schedule-table tr.today-row {
+    background-color: rgba(16, 185, 129, 0.1);
+    font-weight: bold;
 }
 
 .setting-group {
