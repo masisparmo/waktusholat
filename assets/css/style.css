@@ -249,10 +249,24 @@ button {
 }
 
 .timeline-labels {
-    display: flex;
-    justify-content: space-between;
+    position: relative;
+    height: 3rem;
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+.timeline-labels span {
+    position: absolute;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.timeline-labels span:first-child {
+    transform: translateX(0);
+}
+
+.timeline-labels span:last-child {
+    transform: translateX(-100%);
 }
 
 /* --- Alerts & Badges --- */

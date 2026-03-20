@@ -568,6 +568,11 @@ function calculatePrayerTimes() {
     tmrw.setDate(tmrw.getDate() + 1);
     tomorrowAdhanTimes = new adhan.PrayerTimes(coordinates, tmrw, methodParams);
 
+    // Yesterday
+    const ystr = new Date(date);
+    ystr.setDate(ystr.getDate() - 1);
+    window.yesterdayAdhanTimes = new adhan.PrayerTimes(coordinates, ystr, methodParams);
+
     renderPrayerTimesGrid();
 }
 
@@ -725,15 +730,28 @@ function checkProhibitedTimes() {
 }
 
 function checkNightThird() {
-    if (!adhanTimes || !tomorrowAdhanTimes) return;
+    if (!adhanTimes || !tomorrowAdhanTimes || !window.yesterdayAdhanTimes) return;
 
     const now = new Date();
-    const maghribTime = adhanTimes.maghrib;
-    const tomorrowFajrTime = tomorrowAdhanTimes.fajr;
 
-    const totalNightDuration = tomorrowFajrTime.getTime() - maghribTime.getTime();
+    // Determine the relevant night period
+    let maghribTime, nextFajrTime;
+
+    if (now < adhanTimes.fajr) {
+        // We are past midnight but before today's Fajr
+        // The "night" started yesterday at Maghrib and ends today at Fajr
+        maghribTime = window.yesterdayAdhanTimes.maghrib;
+        nextFajrTime = adhanTimes.fajr;
+    } else {
+        // We are past today's Fajr
+        // The "night" starts today at Maghrib and ends tomorrow at Fajr
+        maghribTime = adhanTimes.maghrib;
+        nextFajrTime = tomorrowAdhanTimes.fajr;
+    }
+
+    const totalNightDuration = nextFajrTime.getTime() - maghribTime.getTime();
     const thirdDuration = totalNightDuration / 3;
-    const lastThirdStart = new Date(tomorrowFajrTime.getTime() - thirdDuration);
+    const lastThirdStart = new Date(nextFajrTime.getTime() - thirdDuration);
 
     const badge = document.getElementById('night-third-badge');
     const startTimeElem = document.getElementById('night-third-start');
@@ -744,18 +762,15 @@ function checkNightThird() {
     // Make badge always visible but change content
     badge.classList.remove('hidden');
 
-    if (now >= lastThirdStart && now < tomorrowFajrTime) {
+    if (now >= lastThirdStart && now < nextFajrTime) {
         countdownElem.textContent = texts[appState.lang].nightThirdActive;
         countdownElem.classList.remove('text-muted');
         countdownElem.classList.add('text-emerald');
     } else {
         // Find next 1/3 night start
         let targetStart = lastThirdStart;
-        if (now > tomorrowFajrTime) {
-            // Need to calculate next night's 1/3 if we passed morning fajr
+        if (now > nextFajrTime) {
             targetStart = new Date(lastThirdStart.getTime() + 24 * 60 * 60 * 1000);
-            // Note: This is a rough estimation for daytime display.
-            // Accurate recalculation happens at updateAll() next tick.
         }
 
         if (now < targetStart) {
@@ -866,17 +881,52 @@ function updateTimeline(now, prayers, nextPrayer) {
         timelineProgress.style.width = `${percentage}%`;
     }
 
-    // Initialize labels once
+    // Initialize or Update labels correctly relative to duration
     if (labelsContainer.children.length === 0) {
         labelsContainer.innerHTML = '';
-        const importantPrayers = [
-            { name: texts[appState.lang].prayerNames.fajr },
-            { name: texts[appState.lang].prayerNames.dhuhr },
-            { name: texts[appState.lang].prayerNames.maghrib }
+
+        const allPrayers = [
+            { id: 'fajr', name: texts[appState.lang].prayerNames.fajr, time: adhanTimes.fajr.getTime() },
+            { id: 'sunrise', name: texts[appState.lang].prayerNames.sunrise, time: adhanTimes.sunrise.getTime() },
+            { id: 'dhuhr', name: texts[appState.lang].prayerNames.dhuhr, time: adhanTimes.dhuhr.getTime() },
+            { id: 'asr', name: texts[appState.lang].prayerNames.asr, time: adhanTimes.asr.getTime() },
+            { id: 'maghrib', name: texts[appState.lang].prayerNames.maghrib, time: adhanTimes.maghrib.getTime() },
+            { id: 'isha', name: texts[appState.lang].prayerNames.isha, time: adhanTimes.isha.getTime() }
         ];
-        importantPrayers.forEach(p => {
+
+        const totalDuration = endTime - startTime;
+
+        allPrayers.forEach((p, index) => {
             const span = document.createElement('span');
             span.textContent = p.name;
+            span.style.position = 'absolute';
+
+            // Alternate vertical position to prevent overlap on mobile
+            if (index % 2 !== 0) {
+                span.style.top = '1.2rem';
+            } else {
+                span.style.top = '0';
+            }
+
+            // Calculate absolute left percentage based on time from Fajr
+            let leftPercent = ((p.time - startTime) / totalDuration) * 100;
+            // Bound it slightly to avoid overflowing
+            if (leftPercent < 0) leftPercent = 0;
+            if (leftPercent > 100) leftPercent = 100;
+
+            // For the first and last, align to left/right bounds so they don't clip
+            if (p.id === 'fajr') {
+                span.style.left = '0%';
+                span.style.transform = 'translateX(0)';
+            } else if (p.id === 'isha') {
+                span.style.right = '0%';
+                span.style.transform = 'translateX(0)';
+                span.style.left = 'auto'; // override left
+            } else {
+                span.style.left = `${leftPercent}%`;
+                span.style.transform = 'translateX(-50%)'; // Center horizontally over the exact spot
+            }
+
             labelsContainer.appendChild(span);
         });
     }
