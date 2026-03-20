@@ -857,10 +857,12 @@ function startCountdown() {
 function updateTimeline(now, prayers, nextPrayer) {
     if (!adhanTimes) return;
 
-    const timelineProgress = document.getElementById('timeline-progress');
-    const labelsContainer = document.getElementById('timeline-labels');
+    const timelineProgress = document.querySelector('.timeline-progress-new');
+    const labelsContainer = document.querySelector('.timeline-labels-new');
 
-    // Simplistic timeline mapping from Fajr to Isha today
+    if (!timelineProgress || !labelsContainer) return;
+
+    // Include all 6 prayer times in the timeline
     const startTime = adhanTimes.fajr.getTime();
     const endTime = adhanTimes.isha.getTime();
 
@@ -875,56 +877,52 @@ function updateTimeline(now, prayers, nextPrayer) {
         timelineProgress.style.width = `${percentage}%`;
     }
 
-    // Initialize or Update labels correctly relative to duration
     if (labelsContainer.children.length === 0) {
         labelsContainer.innerHTML = '';
 
-        const allPrayers = [
-            { id: 'fajr', name: texts[appState.lang].prayerNames.fajr, time: adhanTimes.fajr.getTime() },
-            { id: 'sunrise', name: texts[appState.lang].prayerNames.sunrise, time: adhanTimes.sunrise.getTime() },
-            { id: 'dhuhr', name: texts[appState.lang].prayerNames.dhuhr, time: adhanTimes.dhuhr.getTime() },
-            { id: 'asr', name: texts[appState.lang].prayerNames.asr, time: adhanTimes.asr.getTime() },
-            { id: 'maghrib', name: texts[appState.lang].prayerNames.maghrib, time: adhanTimes.maghrib.getTime() },
-            { id: 'isha', name: texts[appState.lang].prayerNames.isha, time: adhanTimes.isha.getTime() }
+        const timelinePrayers = [
+            { id: 'fajr', name: texts[appState.lang].prayerNames.fajr, time: adhanTimes.fajr },
+            { id: 'sunrise', name: texts[appState.lang].prayerNames.sunrise, time: adhanTimes.sunrise },
+            { id: 'dhuhr', name: texts[appState.lang].prayerNames.dhuhr, time: adhanTimes.dhuhr },
+            { id: 'asr', name: texts[appState.lang].prayerNames.asr, time: adhanTimes.asr },
+            { id: 'maghrib', name: texts[appState.lang].prayerNames.maghrib, time: adhanTimes.maghrib },
+            { id: 'isha', name: texts[appState.lang].prayerNames.isha, time: adhanTimes.isha }
         ];
 
         const totalDuration = endTime - startTime;
 
-        allPrayers.forEach((p, index) => {
-            const span = document.createElement('span');
-            span.textContent = p.name;
-            span.style.position = 'absolute';
+        timelinePrayers.forEach((p, index) => {
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'timeline-label';
 
-            // Alternate vertical position to prevent overlap on mobile
-            if (index % 2 !== 0) {
-                span.style.top = '1.2rem';
-            } else {
-                span.style.top = '0';
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'name';
+            nameSpan.textContent = p.name;
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'time';
+            timeSpan.textContent = formatTime(p.time);
+
+            labelDiv.appendChild(nameSpan);
+            labelDiv.appendChild(timeSpan);
+
+            let leftPercent = ((p.time.getTime() - startTime) / totalDuration) * 100;
+            // Bound between 0 and 100
+            leftPercent = Math.max(0, Math.min(100, leftPercent));
+            labelDiv.style.left = `${leftPercent}%`;
+
+            // Handle edge overlaps for labels
+            if (index === 0) {
+                labelDiv.style.transform = 'translateX(0)';
+            } else if (index === timelinePrayers.length - 1) {
+                labelDiv.style.transform = 'translateX(-100%)';
             }
 
-            // Calculate absolute left percentage based on time from Fajr
-            let leftPercent = ((p.time - startTime) / totalDuration) * 100;
-            // Bound it slightly to avoid overflowing
-            if (leftPercent < 0) leftPercent = 0;
-            if (leftPercent > 100) leftPercent = 100;
-
-            // For the first and last, align to left/right bounds so they don't clip
-            if (p.id === 'fajr') {
-                span.style.left = '0%';
-                span.style.transform = 'translateX(0)';
-            } else if (p.id === 'isha') {
-                span.style.right = '0%';
-                span.style.transform = 'translateX(0)';
-                span.style.left = 'auto'; // override left
-            } else {
-                span.style.left = `${leftPercent}%`;
-                span.style.transform = 'translateX(-50%)'; // Center horizontally over the exact spot
-            }
-
-            labelsContainer.appendChild(span);
+            labelsContainer.appendChild(labelDiv);
         });
     }
 }
+
 
 function sendNotification(prayerName) {
     if ("Notification" in window && Notification.permission === "granted") {

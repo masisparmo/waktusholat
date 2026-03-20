@@ -371,6 +371,8 @@ button {
 }
 
 .prayer-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-light);
     background-color: var(--bg-secondary);
     padding: 1rem;
     border-radius: var(--border-radius-md);
@@ -634,7 +636,9 @@ body.tv-mode .container {
 body.tv-mode .masehi { font-size: 2rem; }
 body.tv-mode .hijri { font-size: 1.5rem; }
 body.tv-mode .next-prayer-card { transform: scale(1.2); margin-bottom: 3rem; }
-body.tv-mode .prayer-card { padding: 2rem; }
+body.tv-mode .prayer-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-light); padding: 2rem; }
 body.tv-mode .prayer-name { font-size: 1.5rem; }
 body.tv-mode .prayer-time { font-size: 3rem; }
 
@@ -646,7 +650,7 @@ body.tv-mode .prayer-time { font-size: 3rem; }
 }
 @media (max-width: 400px) {
     .prayer-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
@@ -681,6 +685,8 @@ body.tv-mode .prayer-time { font-size: 3rem; }
         gap: 1rem;
     }
     body.print-today-mode .prayer-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-light);
         border: 1px solid #ccc;
         box-shadow: none;
         break-inside: avoid;
@@ -724,4 +730,151 @@ body.tv-mode .prayer-time { font-size: 3rem; }
         background-color: transparent !important;
         font-weight: normal;
     }
+}
+
+/* --- New Solar Timeline --- */
+.solar-timeline-section {
+    padding: 0 1rem;
+    margin-bottom: 2rem;
+}
+
+.timeline-card {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.timeline-header h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.timeline-container-new {
+    position: relative;
+    padding-bottom: 3rem; /* Space for labels below */
+}
+
+.timeline-bar-new {
+    height: 12px;
+    background: linear-gradient(90deg, var(--primary-800) 0%, var(--warning-400) 100%);
+    border-radius: 6px;
+    position: relative;
+    width: 100%;
+}
+
+.timeline-progress-new {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    /* We don't color the progress itself, we just use its right edge to position the sun */
+    width: 0%;
+    transition: width 1s linear;
+}
+
+.sun-indicator {
+    position: absolute;
+    right: -12px; /* Center the sun on the progress edge */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background-color: var(--warning-400);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+    z-index: 10;
+}
+
+.sun-indicator svg {
+    width: 16px;
+    height: 16px;
+}
+
+.timeline-labels-new {
+    position: absolute;
+    top: 24px; /* Below the bar */
+    left: 0;
+    width: 100%;
+    height: 3rem;
+    pointer-events: none; /* Let clicks pass through if any */
+}
+
+.timeline-labels-new .timeline-label {
+    position: absolute;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.timeline-labels-new .timeline-label .name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.timeline-labels-new .timeline-label .time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.prayer-card .status-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.prayer-card.highlight-current {
+    border: 2px solid var(--emerald-500);
+    background-color: var(--bg-primary);
+}
+.prayer-card.highlight-current .status-badge {
+    background-color: var(--emerald-100);
+    color: var(--emerald-700);
+}
+
+.prayer-card.highlight-next {
+    border: 1px solid var(--warning-400);
+    background-color: var(--bg-primary);
+}
+.prayer-card.highlight-next .status-badge {
+    background-color: var(--warning-100);
+    color: var(--warning-700);
+}
+
+.prayer-card.past {
+    opacity: 0.7;
+}
+.prayer-card.past .status-badge {
+    color: var(--text-muted);
+}
+
+.prayer-card .icon-container {
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: flex-start;
+}
+.prayer-card .icon-container svg {
+    width: 24px;
+    height: 24px;
+    color: var(--text-muted);
 }
