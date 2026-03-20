@@ -225,7 +225,7 @@ button {
 
 /* Timeline */
 .timeline-container {
-    margin-top: 2rem;
+    margin-top: 2.75rem;
     padding: 0 1rem;
     overflow: hidden; /* Ensure timeline doesn't cause x-scroll on mobile */
 }
@@ -762,7 +762,7 @@ body.tv-mode .prayer-time { font-size: 3rem; }
 
 .timeline-container-new {
     position: relative;
-    padding-bottom: 3rem; /* Space for labels below */
+    padding-bottom: 6rem; /* Increased space for staggered labels below */
 }
 
 .timeline-bar-new {
@@ -809,7 +809,7 @@ body.tv-mode .prayer-time { font-size: 3rem; }
     top: 24px; /* Below the bar */
     left: 0;
     width: 100%;
-    height: 3rem;
+    height: 5.5rem; /* Increased height to accommodate staggered labels */
     pointer-events: none; /* Let clicks pass through if any */
 }
 
@@ -820,6 +820,11 @@ body.tv-mode .prayer-time { font-size: 3rem; }
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
+}
+
+/* Stagger labels to prevent overlapping */
+.timeline-labels-new .timeline-label:nth-child(even) {
+    top: 2.75rem;
 }
 
 .timeline-labels-new .timeline-label .name {
