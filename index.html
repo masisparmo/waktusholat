@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sholat & Imsakiyah Lengkap</title>
+    <meta name="description" content="Aplikasi web jadwal sholat akurat, 1/3 malam terakhir, waktu terlarang, kalender Hijriyah, Ayyamul Bidh. Mendukung lokasi otomatis, mode TV masjid, dan PWA.">
+    <meta name="keywords" content="jadwal sholat, waktu sholat, imsakiyah, arah kiblat, hijriyah, ayyamul bidh, sepertiga malam, masjid, PWA">
+    <link rel="canonical" href="https://yourusername.github.io/jadwal-sholat/" />
+
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="Jadwal Sholat & Imsakiyah Lengkap">
+    <meta property="og:description" content="Aplikasi web jadwal sholat akurat dengan fitur sepertiga malam, waktu terlarang, dan kalender Hijriyah.">
+    <meta property="og:image" content="assets/icons/icon-512x512.png">
+    <meta property="og:url" content="https://yourusername.github.io/jadwal-sholat/">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card Meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jadwal Sholat & Imsakiyah Lengkap">
+    <meta name="twitter:description" content="Jadwal sholat akurat dengan fitur lengkap untuk ibadah Anda.">
+    <meta name="twitter:image" content="assets/icons/icon-512x512.png">
+
+    <!-- PWA & Icons -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Jadwal Sholat & Imsakiyah",
+      "description": "Aplikasi jadwal sholat statis dengan perhitungan client-side menggunakan Adhan.js",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0"
+      }
+    }
+    </script>
+</head>
+<body class="dark-mode">
+    <header class="sticky-header">
+        <div class="header-content">
+            <div class="logo-area">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                <h1 id="app-title">Jadwal Sholat</h1>
+            </div>
+            <div class="header-controls">
+                <button id="lang-toggle" aria-label="Toggle Language" title="Ganti Bahasa">EN</button>
+                <button id="theme-toggle" aria-label="Toggle Theme" title="Ganti Tema">
+                    <svg class="sun-icon" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <button id="settings-btn" aria-label="Settings" title="Pengaturan">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" id="main-content">
+        <!-- Dashboard / Overview -->
+        <section class="overview-section" id="overview">
+            <div class="location-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="location-name">Mendeteksi lokasi...</span>
+            </div>
+
+            <div class="date-info">
+                <div id="masehi-date" class="masehi">Memuat tanggal...</div>
+                <div id="hijri-date" class="hijri">Memuat hijriyah...</div>
+            </div>
+
+            <div class="next-prayer-card">
+                <h2 id="next-prayer-label">Menuju Sholat Berikutnya</h2>
+                <div class="countdown-timer">
+                    <span id="next-prayer-name">...</span>
+                    <div id="countdown-time" class="time-display">00:00:00</div>
+                </div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-bar">
+                    <div id="timeline-progress" class="timeline-progress"></div>
+                </div>
+                <div class="timeline-labels" id="timeline-labels">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Alerts & Badges -->
+        <section class="alerts-section" id="alerts-container">
+            <!-- Prohibited Times Alert -->
+            <div id="prohibited-alert" class="alert-box alert-danger hidden">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="prohibited-msg">Memasuki waktu terlarang sholat.</span>
+            </div>
+
+            <!-- 1/3 Night Badge -->
+            <div id="night-third-badge" class="alert-box alert-info hidden">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <div>
+                    <strong id="night-third-title">1/3 Malam Terakhir</strong>
+                    <p id="night-third-desc" class="text-small">Waktu terbaik untuk Tahajud (Dimulai pukul <span id="night-third-start">--:--</span>)</p>
+                </div>
+            </div>
+
+            <!-- Ayyamul Bidh Badge -->
+            <div id="ayyamul-bidh-badge" class="alert-box alert-warning hidden">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <div>
+                    <strong id="ayyamul-bidh-title">Hari Ini Ayyamul Bidh</strong>
+                    <p id="ayyamul-bidh-desc" class="text-small">Disunnahkan berpuasa pada 13, 14, 15 Hijriyah.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prayer Times Grid -->
+        <section class="prayer-times-section">
+            <div class="section-header">
+                <h2 id="jadwal-title">Jadwal Hari Ini</h2>
+                <div class="actions">
+                    <button id="export-pdf-btn" class="btn-small" aria-label="Export to PDF" title="Download PDF">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span id="export-btn-text">PDF</span>
+                    </button>
+                    <button id="tv-mode-btn" class="btn-small" aria-label="TV Mode" title="Mode TV Masjid">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="prayer-grid" id="prayer-grid">
+                <!-- Cards populated by JS -->
+                <div class="prayer-card" id="card-fajr">
+                    <div class="prayer-name" id="label-fajr">Subuh</div>
+                    <div class="prayer-time" id="time-fajr">--:--</div>
+                </div>
+                <div class="prayer-card highlight-syuruq" id="card-sunrise">
+                    <div class="prayer-name" id="label-sunrise">Syuruq</div>
+                    <div class="prayer-time" id="time-sunrise">--:--</div>
+                </div>
+                <div class="prayer-card" id="card-dhuhr">
+                    <div class="prayer-name" id="label-dhuhr">Dzuhur</div>
+                    <div class="prayer-time" id="time-dhuhr">--:--</div>
+                </div>
+                <div class="prayer-card" id="card-asr">
+                    <div class="prayer-name" id="label-asr">Ashar</div>
+                    <div class="prayer-time" id="time-asr">--:--</div>
+                </div>
+                <div class="prayer-card" id="card-maghrib">
+                    <div class="prayer-name" id="label-maghrib">Maghrib</div>
+                    <div class="prayer-time" id="time-maghrib">--:--</div>
+                </div>
+                <div class="prayer-card" id="card-isha">
+                    <div class="prayer-name" id="label-isha">Isya</div>
+                    <div class="prayer-time" id="time-isha">--:--</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mini Calendar / Widget -->
+        <section class="widget-section">
+            <article class="widget-card">
+                <h3 id="widget-ayyamul-title">Ayyamul Bidh Bulan Ini</h3>
+                <ul id="ayyamul-list" class="ayyamul-list">
+                    <li>Memuat data...</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="settings-title">Pengaturan</h2>
+                <button id="close-settings" class="close-btn" aria-label="Close Settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="calc-method" id="label-method">Metode Perhitungan</label>
+                    <select id="calc-method">
+                        <!-- Populated by JS -->
+                        <option value="Singapore">Kemenag / MUIS (Singapore)</option>
+                        <option value="MuslimWorldLeague">Muslim World League</option>
+                        <option value="Egyptian">Egyptian General Authority</option>
+                        <option value="UmmAlQura">Umm Al-Qura, Makkah</option>
+                        <option value="Karachi">University of Islamic Sciences, Karachi</option>
+                        <option value="ISNA">ISNA (North America)</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label id="label-location">Lokasi (Lat, Lng)</label>
+                    <div class="location-inputs">
+                        <input type="number" id="lat-input" step="0.000001" placeholder="Latitude">
+                        <input type="number" id="lng-input" step="0.000001" placeholder="Longitude">
+                    </div>
+                    <button id="detect-location-btn" class="btn-outline mt-2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span id="btn-detect-text">Deteksi Otomatis</span>
+                    </button>
+                </div>
+
+                <div class="setting-group">
+                    <label id="label-notifications">Notifikasi</label>
+                    <button id="enable-notif-btn" class="btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="btn-notif-text">Aktifkan Notifikasi Waktu Sholat</span>
+                    </button>
+                    <p id="notif-status" class="text-small mt-1 text-muted">Status: Belum diizinkan</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings-btn" class="btn-primary">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries (CDN) -->
+    <!-- Adhan.js for calculation -->
+    <script src="https://cdn.jsdelivr.net/npm/adhan@4.4.3/lib/bundles/adhan.umd.min.js"></script>
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="assets/js/db.js"></script>
+    <script src="assets/js/script.js"></script>
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

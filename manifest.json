@@ -1,0 +1,22 @@
+{
+  "name": "Jadwal Sholat & Imsakiyah Lengkap",
+  "short_name": "Jadwal Sholat",
+  "description": "Aplikasi web jadwal sholat akurat dengan fitur sepertiga malam, waktu terlarang, dan kalender Hijriyah.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
