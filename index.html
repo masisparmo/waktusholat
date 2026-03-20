@@ -100,17 +100,19 @@
         <!-- Alerts & Badges -->
         <section class="alerts-section" id="alerts-container">
             <!-- Prohibited Times Alert -->
-            <div id="prohibited-alert" class="alert-box alert-danger hidden">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span id="prohibited-msg">Memasuki waktu terlarang sholat.</span>
+            <div id="prohibited-alert" class="alert-box alert-success">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="prohibited-icon-safe"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="prohibited-icon-danger" style="display:none;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="prohibited-msg">Status: Waktu Aman untuk Sholat</span>
             </div>
 
             <!-- 1/3 Night Badge -->
-            <div id="night-third-badge" class="alert-box alert-info hidden">
+            <div id="night-third-badge" class="alert-box alert-info">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 <div>
                     <strong id="night-third-title">1/3 Malam Terakhir</strong>
                     <p id="night-third-desc" class="text-small">Waktu terbaik untuk Tahajud (Dimulai pukul <span id="night-third-start">--:--</span>)</p>
+                    <p id="night-third-countdown" class="text-small text-muted font-bold mt-1"></p>
                 </div>
             </div>
 
@@ -201,14 +203,21 @@
                 </div>
 
                 <div class="setting-group">
-                    <label id="label-location">Lokasi (Lat, Lng)</label>
-                    <div class="location-inputs">
+                    <label id="label-location">Pilih Kota / Lokasi Manual</label>
+
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="city-search" placeholder="Cari Kabupaten/Kota..." autocomplete="off">
+                        <ul id="city-suggestions" class="suggestions-list hidden"></ul>
+                    </div>
+
+                    <div class="location-inputs mt-2">
                         <input type="number" id="lat-input" step="0.000001" placeholder="Latitude">
                         <input type="number" id="lng-input" step="0.000001" placeholder="Longitude">
                     </div>
+
                     <button id="detect-location-btn" class="btn-outline mt-2">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-                        <span id="btn-detect-text">Deteksi Otomatis</span>
+                        <span id="btn-detect-text">Deteksi Otomatis (GPS)</span>
                     </button>
                 </div>
 
@@ -234,6 +243,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Application Scripts -->
+    <script src="assets/js/cities.js"></script>
     <script src="assets/js/db.js"></script>
     <script src="assets/js/script.js"></script>
     <script>

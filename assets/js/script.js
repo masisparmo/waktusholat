@@ -4,6 +4,7 @@
 const defaultConfig = {
     lat: -6.2088, // Default: Jakarta
     lng: 106.8456,
+    cityName: 'Kota Jakarta',
     method: 'Singapore', // Default to Kemenag/Singapore
     lang: 'id',
     theme: 'dark',
@@ -17,9 +18,12 @@ const texts = {
         nextPrayerLabel: "Menuju Waktu Berikutnya",
         jadwalTitle: "Jadwal Hari Ini",
         exportBtnText: "PDF",
-        prohibitedMsg: "Memasuki waktu terlarang sholat.",
+        prohibitedMsgSafe: "Status: Aman (Bukan waktu terlarang sholat)",
+        prohibitedMsgDanger: "Peringatan: Memasuki waktu terlarang sholat.",
         nightThirdTitle: "1/3 Malam Terakhir",
         nightThirdDesc: "Waktu terbaik untuk Tahajud (Dimulai pukul {time})",
+        nightThirdActive: "Sekarang adalah waktu 1/3 malam terakhir.",
+        nightThirdWait: "Menuju 1/3 malam: {countdown}",
         ayyamulBidhTitle: "Hari Ini Ayyamul Bidh",
         ayyamulBidhDesc: "Disunnahkan berpuasa pada 13, 14, 15 Hijriyah.",
         widgetAyyamulTitle: "Ayyamul Bidh Bulan Ini",
@@ -54,9 +58,12 @@ const texts = {
         nextPrayerLabel: "Next Prayer In",
         jadwalTitle: "Today's Schedule",
         exportBtnText: "PDF",
-        prohibitedMsg: "Entering prohibited prayer time.",
+        prohibitedMsgSafe: "Status: Safe (Not a prohibited prayer time)",
+        prohibitedMsgDanger: "Warning: Entering prohibited prayer time.",
         nightThirdTitle: "Last Third of the Night",
         nightThirdDesc: "Best time for Tahajjud (Starts at {time})",
+        nightThirdActive: "It is currently the last third of the night.",
+        nightThirdWait: "Starts in: {countdown}",
         ayyamulBidhTitle: "Ayyamul Bidh Today",
         ayyamulBidhDesc: "Sunnah to fast on 13th, 14th, 15th Hijri.",
         widgetAyyamulTitle: "Ayyamul Bidh This Month",
@@ -171,15 +178,67 @@ function setupEventListeners() {
     const closeSettings = document.getElementById('close-settings');
     const saveSettingsBtn = document.getElementById('save-settings-btn');
     const detectLocBtn = document.getElementById('detect-location-btn');
+    const citySearch = document.getElementById('city-search');
+    const citySuggestions = document.getElementById('city-suggestions');
 
     settingsBtn.addEventListener('click', () => {
         document.getElementById('calc-method').value = appState.method;
         document.getElementById('lat-input').value = appState.lat;
         document.getElementById('lng-input').value = appState.lng;
+        if (appState.cityName) {
+            citySearch.value = appState.cityName;
+        } else {
+            citySearch.value = '';
+        }
         settingsModal.classList.remove('hidden');
     });
 
     closeSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+    // Autocomplete Logic
+    let selectedCityName = null;
+
+    citySearch.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        citySuggestions.innerHTML = '';
+        if (!val) {
+            citySuggestions.classList.add('hidden');
+            selectedCityName = null;
+            return;
+        }
+
+        const matches = indonesiaCities.filter(c => c.name.toLowerCase().includes(val)).slice(0, 10);
+
+        if (matches.length > 0) {
+            citySuggestions.classList.remove('hidden');
+            matches.forEach(city => {
+                const li = document.createElement('li');
+                li.textContent = city.name;
+                li.addEventListener('click', () => {
+                    citySearch.value = city.name;
+                    document.getElementById('lat-input').value = city.lat;
+                    document.getElementById('lng-input').value = city.lng;
+                    selectedCityName = city.name;
+                    citySuggestions.classList.add('hidden');
+                });
+                citySuggestions.appendChild(li);
+            });
+        } else {
+            citySuggestions.classList.add('hidden');
+            selectedCityName = null;
+        }
+    });
+
+    // Close suggestions if clicked outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.autocomplete-wrapper')) {
+            citySuggestions.classList.add('hidden');
+        }
+    });
+
+    // If user modifies lat/lng manually after picking a city, clear city name
+    document.getElementById('lat-input').addEventListener('input', () => { selectedCityName = null; citySearch.value = ''; });
+    document.getElementById('lng-input').addEventListener('input', () => { selectedCityName = null; citySearch.value = ''; });
 
     saveSettingsBtn.addEventListener('click', async () => {
         const newLat = parseFloat(document.getElementById('lat-input').value);
@@ -190,6 +249,8 @@ function setupEventListeners() {
             appState.lat = newLat;
             appState.lng = newLng;
             appState.method = newMethod;
+            appState.cityName = selectedCityName; // Will be null if coordinates typed manually
+
             await savePreferences();
             settingsModal.classList.add('hidden');
             updateAll();
@@ -200,10 +261,15 @@ function setupEventListeners() {
 
     detectLocBtn.addEventListener('click', async () => {
         try {
+            document.getElementById('btn-detect-text').textContent = appState.lang === 'id' ? "Mendeteksi..." : "Detecting...";
             const loc = await detectLocation();
             document.getElementById('lat-input').value = loc.lat;
             document.getElementById('lng-input').value = loc.lng;
+            citySearch.value = '';
+            selectedCityName = null;
+            document.getElementById('btn-detect-text').textContent = appState.lang === 'id' ? "Deteksi Otomatis (GPS)" : "Auto Detect (GPS)";
         } catch (error) {
+            document.getElementById('btn-detect-text').textContent = appState.lang === 'id' ? "Deteksi Otomatis (GPS)" : "Auto Detect (GPS)";
             alert(texts[appState.lang].errors.locFailed);
         }
     });
@@ -315,7 +381,7 @@ function updateUIText() {
     document.getElementById('jadwal-title').textContent = t.jadwalTitle;
     document.getElementById('export-btn-text').textContent = t.exportBtnText;
 
-    document.getElementById('prohibited-msg').textContent = t.prohibitedMsg;
+    // Prohibited message is dynamically updated in checkProhibitedTimes
     document.getElementById('night-third-title').textContent = t.nightThirdTitle;
     document.getElementById('night-third-desc').innerHTML = t.nightThirdDesc.replace('{time}', '<span id="night-third-start">--:--</span>');
     document.getElementById('ayyamul-bidh-title').textContent = t.ayyamulBidhTitle;
@@ -343,7 +409,11 @@ function updateUIText() {
 
 function updateAll() {
     // Basic coordinate info
-    document.getElementById('location-name').textContent = `${appState.lat.toFixed(4)}, ${appState.lng.toFixed(4)}`;
+    if (appState.cityName) {
+        document.getElementById('location-name').textContent = appState.cityName;
+    } else {
+        document.getElementById('location-name').textContent = `${appState.lat.toFixed(4)}, ${appState.lng.toFixed(4)}`;
+    }
 
     // Calculate Hijri Date first
     calculateHijriDate();
@@ -521,10 +591,22 @@ function checkProhibitedTimes() {
     if (now >= zenithStart && now <= zenithEnd) isProhibited = true;
     if (now >= sunsetStart && now < adhanTimes.maghrib) isProhibited = true;
 
+    const msgElem = document.getElementById('prohibited-msg');
+    const iconSafe = document.getElementById('prohibited-icon-safe');
+    const iconDanger = document.getElementById('prohibited-icon-danger');
+
     if (isProhibited) {
-        alertBox.classList.remove('hidden');
+        alertBox.classList.remove('alert-success');
+        alertBox.classList.add('alert-danger');
+        msgElem.textContent = texts[appState.lang].prohibitedMsgDanger;
+        iconSafe.style.display = 'none';
+        iconDanger.style.display = 'block';
     } else {
-        alertBox.classList.add('hidden');
+        alertBox.classList.add('alert-success');
+        alertBox.classList.remove('alert-danger');
+        msgElem.textContent = texts[appState.lang].prohibitedMsgSafe;
+        iconDanger.style.display = 'none';
+        iconSafe.style.display = 'block';
     }
 }
 
@@ -541,12 +623,38 @@ function checkNightThird() {
 
     const badge = document.getElementById('night-third-badge');
     const startTimeElem = document.getElementById('night-third-start');
+    const countdownElem = document.getElementById('night-third-countdown');
+
     if (startTimeElem) startTimeElem.textContent = formatTime(lastThirdStart);
 
+    // Make badge always visible but change content
+    badge.classList.remove('hidden');
+
     if (now >= lastThirdStart && now < tomorrowFajrTime) {
-        badge.classList.remove('hidden');
+        countdownElem.textContent = texts[appState.lang].nightThirdActive;
+        countdownElem.classList.remove('text-muted');
+        countdownElem.classList.add('text-emerald');
     } else {
-        badge.classList.add('hidden');
+        // Find next 1/3 night start
+        let targetStart = lastThirdStart;
+        if (now > tomorrowFajrTime) {
+            // Need to calculate next night's 1/3 if we passed morning fajr
+            targetStart = new Date(lastThirdStart.getTime() + 24 * 60 * 60 * 1000);
+            // Note: This is a rough estimation for daytime display.
+            // Accurate recalculation happens at updateAll() next tick.
+        }
+
+        if (now < targetStart) {
+            const diffMs = targetStart - now;
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            countdownElem.textContent = texts[appState.lang].nightThirdWait.replace('{countdown}', timeStr);
+            countdownElem.classList.add('text-muted');
+            countdownElem.classList.remove('text-emerald');
+        }
     }
 }
 
@@ -605,9 +713,11 @@ function startCountdown() {
             if(activeCard) activeCard.classList.add('active');
         }
 
+        // Check per second to allow real-time countdown for 1/3 night
+        checkNightThird();
+
         if (now.getSeconds() === 0) {
             checkProhibitedTimes();
-            checkNightThird();
         }
 
         // Auto Refresh at Midnight (Check if day changed)
