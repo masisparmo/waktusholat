@@ -79,8 +79,14 @@
                 <div id="hijri-date" class="hijri">Memuat hijriyah...</div>
             </div>
 
-            <div class="next-prayer-card">
-                <h2 id="next-prayer-label">Menuju Sholat Berikutnya</h2>
+            <!-- Khusus Ramadhan: Alert Imsak / Buka Puasa -->
+            <div id="ramadhan-alert" class="alert-box alert-success hidden" style="margin-bottom: 1rem; justify-content: center; text-align: center; flex-direction: column;">
+                <strong class="text-md" id="ramadhan-status-title" style="display: block; margin-bottom: 0.25rem;">Marhaban Ya Ramadhan</strong>
+                <p class="text-small" id="ramadhan-status-msg" style="margin-bottom: 0; font-weight: bold; font-size: 1.1rem; color: var(--emerald-600);"></p>
+            </div>
+
+            <div class="next-prayer-card" id="main-countdown-card">
+                <h2 id="next-prayer-label">Menuju Waktu Berikutnya</h2>
                 <div class="countdown-timer">
                     <span id="next-prayer-name">...</span>
                     <div id="countdown-time" class="time-display">00:00:00</div>
@@ -111,6 +117,10 @@
 
             <div class="prayer-grid" id="prayer-grid">
                 <!-- Cards populated by JS -->
+                <div class="prayer-card hidden" id="card-imsak" style="border-color: var(--emerald-500); background-color: rgba(16, 185, 129, 0.05);">
+                    <div class="prayer-name text-emerald font-bold" id="label-imsak">Imsak</div>
+                    <div class="prayer-time text-emerald" id="time-imsak">--:--</div>
+                </div>
                 <div class="prayer-card" id="card-fajr">
                     <div class="prayer-name" id="label-fajr">Subuh</div>
                     <div class="prayer-time" id="time-fajr">--:--</div>
@@ -127,7 +137,8 @@
                     <div class="prayer-name" id="label-asr">Ashar</div>
                     <div class="prayer-time" id="time-asr">--:--</div>
                 </div>
-                <div class="prayer-card" id="card-maghrib">
+                <div class="prayer-card" id="card-maghrib" style="position: relative;">
+                    <div class="status-badge hidden" id="buka-badge" style="background-color: var(--gold-500); color: white;">BUKA PUASA</div>
                     <div class="prayer-name" id="label-maghrib">Maghrib</div>
                     <div class="prayer-time" id="time-maghrib">--:--</div>
                 </div>
@@ -347,10 +358,27 @@
                 navigator.serviceWorker.register('service-worker.js')
                     .then(registration => {
                         console.log('SW registered: ', registration);
+
+                        // Force update
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('New content is available; please refresh.');
+                                }
+                            });
+                        });
                     })
                     .catch(registrationError => {
                         console.log('SW registration failed: ', registrationError);
                     });
+            });
+
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
             });
         }
     </script>

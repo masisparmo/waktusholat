@@ -37,6 +37,7 @@ const texts = {
         btnNotifText: "Aktifkan Notifikasi Waktu Sholat",
         btnSaveSettings: "Simpan",
         prayerNames: {
+            imsak: "Imsak",
             fajr: "Subuh",
             sunrise: "Syuruq",
             dhuhr: "Dzuhur",
@@ -78,6 +79,7 @@ const texts = {
         btnNotifText: "Enable Prayer Notifications",
         btnSaveSettings: "Save",
         prayerNames: {
+            imsak: "Imsak",
             fajr: "Fajr",
             sunrise: "Sunrise",
             dhuhr: "Dhuhr",
@@ -412,7 +414,14 @@ function updateUIText() {
     document.getElementById('lang-toggle').textContent = appState.lang === 'id' ? 'EN' : 'ID';
 
     document.getElementById('app-title').textContent = t.appTitle;
-    document.getElementById('next-prayer-label').textContent = t.nextPrayerLabel;
+
+    // Check mode
+    if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+        document.getElementById('next-prayer-label').textContent = appState.lang === 'id' ? "Menuju Waktu" : "Time until";
+    } else {
+        document.getElementById('next-prayer-label').textContent = t.nextPrayerLabel;
+    }
+
     document.getElementById('jadwal-title').textContent = t.jadwalTitle;
     document.getElementById('print-btn-text').textContent = t.printBtnText;
 
@@ -433,6 +442,7 @@ function updateUIText() {
     document.getElementById('save-settings-btn').textContent = t.btnSaveSettings;
 
     // Update prayer names in grid
+    document.getElementById('label-imsak').textContent = t.prayerNames.imsak;
     document.getElementById('label-fajr').textContent = t.prayerNames.fajr;
     document.getElementById('label-sunrise').textContent = t.prayerNames.sunrise;
     document.getElementById('label-dhuhr').textContent = t.prayerNames.dhuhr;
@@ -583,12 +593,34 @@ function formatTime(dateObj) {
 function renderPrayerTimesGrid() {
     if (!adhanTimes) return;
 
+    // Calculate Imsak (10 minutes before Fajr)
+    const imsakTime = new Date(adhanTimes.fajr.getTime() - 10 * 60000);
+
+    document.getElementById('time-imsak').textContent = formatTime(imsakTime);
     document.getElementById('time-fajr').textContent = formatTime(adhanTimes.fajr);
     document.getElementById('time-sunrise').textContent = formatTime(adhanTimes.sunrise);
     document.getElementById('time-dhuhr').textContent = formatTime(adhanTimes.dhuhr);
     document.getElementById('time-asr').textContent = formatTime(adhanTimes.asr);
     document.getElementById('time-maghrib').textContent = formatTime(adhanTimes.maghrib);
     document.getElementById('time-isha').textContent = formatTime(adhanTimes.isha);
+
+    // Toggle Ramadhan specifics
+    if (currentHijriDate && currentHijriDate.monthIndex === 8) { // 8 is Ramadhan
+        document.getElementById('card-imsak').classList.remove('hidden');
+        document.getElementById('buka-badge').classList.remove('hidden');
+        document.getElementById('ramadhan-alert').classList.remove('hidden');
+        document.getElementById('ramadhan-status-title').textContent = appState.lang === 'id' ? "Marhaban Ya Ramadhan" : "Ramadan Mubarak";
+
+        // Custom background for Maghrib to highlight Iftar
+        document.getElementById('card-maghrib').style.backgroundColor = "rgba(245, 158, 11, 0.05)";
+        document.getElementById('card-maghrib').style.borderColor = "var(--gold-500)";
+    } else {
+        document.getElementById('card-imsak').classList.add('hidden');
+        document.getElementById('buka-badge').classList.add('hidden');
+        document.getElementById('ramadhan-alert').classList.add('hidden');
+        document.getElementById('card-maghrib').style.backgroundColor = "";
+        document.getElementById('card-maghrib').style.borderColor = "transparent";
+    }
 }
 
 // --- Hijri Calendar & Ayyamul Bidh ---
@@ -848,14 +880,22 @@ function startCountdown() {
         if (!adhanTimes) return;
 
         const now = new Date();
-        const prayers = [
+        let prayers = [];
+
+        // Add Imsak if it's Ramadhan
+        if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+             const imsakTime = new Date(adhanTimes.fajr.getTime() - 10 * 60000);
+             prayers.push({ id: 'imsak', name: 'imsak', time: imsakTime, labelId: 'Imsak', labelEn: 'Imsak' });
+        }
+
+        prayers.push(
             { id: 'fajr', name: 'fajr', time: adhanTimes.fajr },
             { id: 'sunrise', name: 'sunrise', time: adhanTimes.sunrise },
             { id: 'dhuhr', name: 'dhuhr', time: adhanTimes.dhuhr },
             { id: 'asr', name: 'asr', time: adhanTimes.asr },
-            { id: 'maghrib', name: 'maghrib', time: adhanTimes.maghrib },
+            { id: 'maghrib', name: 'maghrib', time: adhanTimes.maghrib, labelId: 'Buka Puasa / Maghrib', labelEn: 'Iftar / Maghrib' },
             { id: 'isha', name: 'isha', time: adhanTimes.isha }
-        ];
+        );
 
         let nextPrayer = null;
         for (let p of prayers) {
@@ -866,7 +906,12 @@ function startCountdown() {
         }
 
         if (!nextPrayer && tomorrowAdhanTimes) {
-            nextPrayer = { id: 'fajr', name: 'fajr', time: tomorrowAdhanTimes.fajr };
+            if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+                const imsakTomorrow = new Date(tomorrowAdhanTimes.fajr.getTime() - 10 * 60000);
+                nextPrayer = { id: 'imsak', name: 'imsak', time: imsakTomorrow };
+            } else {
+                nextPrayer = { id: 'fajr', name: 'fajr', time: tomorrowAdhanTimes.fajr };
+            }
         }
 
         if (nextPrayer) {
@@ -875,12 +920,37 @@ function startCountdown() {
             const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-            document.getElementById('next-prayer-name').textContent = texts[appState.lang].prayerNames[nextPrayer.name];
-            document.getElementById('countdown-time').textContent =
-                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            let displayName = texts[appState.lang].prayerNames[nextPrayer.name];
+            if (currentHijriDate && currentHijriDate.monthIndex === 8 && nextPrayer.id === 'maghrib') {
+                 displayName = appState.lang === 'id' ? 'Buka Puasa (Maghrib)' : 'Iftar (Maghrib)';
+            }
+            document.getElementById('next-prayer-name').textContent = displayName;
 
-            // Update Timeline Progress
-            updateTimeline(now, prayers, nextPrayer);
+            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('countdown-time').textContent = timeStr;
+
+            // Update Ramadhan banner status
+            if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+                const ramadhanMsgElem = document.getElementById('ramadhan-status-msg');
+                if (nextPrayer.id === 'imsak' || nextPrayer.id === 'fajr') {
+                    ramadhanMsgElem.textContent = appState.lang === 'id' ? `Menuju Imsak dalam ${timeStr}` : `Imsak in ${timeStr}`;
+                } else if (nextPrayer.id === 'maghrib') {
+                    ramadhanMsgElem.textContent = appState.lang === 'id' ? `Waktu berbuka puasa dalam ${timeStr}` : `Iftar in ${timeStr}`;
+                } else {
+                    ramadhanMsgElem.textContent = appState.lang === 'id' ? `Puasa Ramadhan Hari ke-${currentHijriDate.day}` : `Ramadan Day ${currentHijriDate.day}`;
+                }
+            }
+
+            // Update Timeline Progress (pass default 6 prayers without imsak for drawing)
+            const timelinePrayers = [
+                { id: 'fajr', name: 'fajr', time: adhanTimes.fajr },
+                { id: 'sunrise', name: 'sunrise', time: adhanTimes.sunrise },
+                { id: 'dhuhr', name: 'dhuhr', time: adhanTimes.dhuhr },
+                { id: 'asr', name: 'asr', time: adhanTimes.asr },
+                { id: 'maghrib', name: 'maghrib', time: adhanTimes.maghrib },
+                { id: 'isha', name: 'isha', time: adhanTimes.isha }
+            ];
+            updateTimeline(now, timelinePrayers, nextPrayer);
 
             // Trigger Notification exactly when time arrives
             if (hours === 0 && minutes === 0 && seconds === 0 && appState.notifEnabled) {
