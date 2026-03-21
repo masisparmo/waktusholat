@@ -27,7 +27,7 @@ const texts = {
         nightThirdWait: "Menuju 1/3 malam: {countdown}",
         ayyamulBidhTitle: "Hari Ini Ayyamul Bidh",
         ayyamulBidhDesc: "Disunnahkan berpuasa pada 13, 14, 15 Hijriyah.",
-        widgetAyyamulTitle: "Ayyamul Bidh Bulan Ini",
+        widgetAyyamulTitle: "Puasa Sunnah Bulan Ini",
         settingsTitle: "Pengaturan",
         labelMethod: "Metode Perhitungan",
         labelHijriOffset: "Koreksi Hijriyah (Hari)",
@@ -37,6 +37,7 @@ const texts = {
         btnNotifText: "Aktifkan Notifikasi Waktu Sholat",
         btnSaveSettings: "Simpan",
         prayerNames: {
+            imsak: "Imsak",
             fajr: "Subuh",
             sunrise: "Syuruq",
             dhuhr: "Dzuhur",
@@ -68,7 +69,7 @@ const texts = {
         nightThirdWait: "Starts in: {countdown}",
         ayyamulBidhTitle: "Ayyamul Bidh Today",
         ayyamulBidhDesc: "Sunnah to fast on 13th, 14th, 15th Hijri.",
-        widgetAyyamulTitle: "Ayyamul Bidh This Month",
+        widgetAyyamulTitle: "Sunnah Fasting This Month",
         settingsTitle: "Settings",
         labelMethod: "Calculation Method",
         labelHijriOffset: "Hijri Adjustment (Days)",
@@ -78,6 +79,7 @@ const texts = {
         btnNotifText: "Enable Prayer Notifications",
         btnSaveSettings: "Save",
         prayerNames: {
+            imsak: "Imsak",
             fajr: "Fajr",
             sunrise: "Sunrise",
             dhuhr: "Dhuhr",
@@ -412,7 +414,14 @@ function updateUIText() {
     document.getElementById('lang-toggle').textContent = appState.lang === 'id' ? 'EN' : 'ID';
 
     document.getElementById('app-title').textContent = t.appTitle;
-    document.getElementById('next-prayer-label').textContent = t.nextPrayerLabel;
+
+    // Check mode
+    if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+        document.getElementById('next-prayer-label').textContent = appState.lang === 'id' ? "Menuju Waktu" : "Time until";
+    } else {
+        document.getElementById('next-prayer-label').textContent = t.nextPrayerLabel;
+    }
+
     document.getElementById('jadwal-title').textContent = t.jadwalTitle;
     document.getElementById('print-btn-text').textContent = t.printBtnText;
 
@@ -433,6 +442,7 @@ function updateUIText() {
     document.getElementById('save-settings-btn').textContent = t.btnSaveSettings;
 
     // Update prayer names in grid
+    document.getElementById('label-imsak').textContent = t.prayerNames.imsak;
     document.getElementById('label-fajr').textContent = t.prayerNames.fajr;
     document.getElementById('label-sunrise').textContent = t.prayerNames.sunrise;
     document.getElementById('label-dhuhr').textContent = t.prayerNames.dhuhr;
@@ -583,12 +593,34 @@ function formatTime(dateObj) {
 function renderPrayerTimesGrid() {
     if (!adhanTimes) return;
 
+    // Calculate Imsak (10 minutes before Fajr)
+    const imsakTime = new Date(adhanTimes.fajr.getTime() - 10 * 60000);
+
+    document.getElementById('time-imsak').textContent = formatTime(imsakTime);
     document.getElementById('time-fajr').textContent = formatTime(adhanTimes.fajr);
     document.getElementById('time-sunrise').textContent = formatTime(adhanTimes.sunrise);
     document.getElementById('time-dhuhr').textContent = formatTime(adhanTimes.dhuhr);
     document.getElementById('time-asr').textContent = formatTime(adhanTimes.asr);
     document.getElementById('time-maghrib').textContent = formatTime(adhanTimes.maghrib);
     document.getElementById('time-isha').textContent = formatTime(adhanTimes.isha);
+
+    // Toggle Ramadhan specifics
+    if (currentHijriDate && currentHijriDate.monthIndex === 8) { // 8 is Ramadhan
+        document.getElementById('card-imsak').classList.remove('hidden');
+        document.getElementById('buka-badge').classList.remove('hidden');
+        document.getElementById('ramadhan-alert').classList.remove('hidden');
+        document.getElementById('ramadhan-status-title').textContent = appState.lang === 'id' ? "Marhaban Ya Ramadhan" : "Ramadan Mubarak";
+
+        // Custom background for Maghrib to highlight Iftar
+        document.getElementById('card-maghrib').style.backgroundColor = "rgba(245, 158, 11, 0.05)";
+        document.getElementById('card-maghrib').style.borderColor = "var(--gold-500)";
+    } else {
+        document.getElementById('card-imsak').classList.add('hidden');
+        document.getElementById('buka-badge').classList.add('hidden');
+        document.getElementById('ramadhan-alert').classList.add('hidden');
+        document.getElementById('card-maghrib').style.backgroundColor = "";
+        document.getElementById('card-maghrib').style.borderColor = "transparent";
+    }
 }
 
 // --- Hijri Calendar & Ayyamul Bidh ---
@@ -650,37 +682,95 @@ function updateAyyamulBidhWidget() {
         badge.classList.add('hidden');
     }
 
-    // Populate Widget List (13, 14, 15 of current hijri month)
+    // Populate Widget List for Sunnah Fasts of the month
     const list = document.getElementById('ayyamul-list');
+    const dalilContainer = document.getElementById('puasa-sunnah-dalil');
     list.innerHTML = '';
+    dalilContainer.innerHTML = '';
 
     const monthName = texts[appState.lang].months[monthIndex];
-
-    // Calculate estimated Gregorian dates for 13, 14, 15
-    // Rough estimation: diff in days from current date
     const today = new Date();
+    const locale = appState.lang === 'id' ? 'id-ID' : 'en-US';
 
-    for (let i = 13; i <= 15; i++) {
-        const diffDays = i - day;
-        const targetDate = new Date(today.getTime());
-        targetDate.setDate(today.getDate() + diffDays);
+    let sunnahFasts = [];
+    let haditsList = [];
 
-        const masehiOptions = { day: 'numeric', month: 'short' };
-        const locale = appState.lang === 'id' ? 'id-ID' : 'en-US';
-        const gDateStr = targetDate.toLocaleDateString(locale, masehiOptions);
+    // 1. Ayyamul Bidh (13, 14, 15) - Berlaku setiap bulan, kecuali Dzulhijjah hari ke-13 (Tasyrik)
+    const ayyamulBidhDates = [13, 14, 15];
+    ayyamulBidhDates.forEach(d => {
+        // Jika bulan Dzulhijjah (index 11) dan tanggal 13, itu hari tasyrik, dilarang puasa.
+        if (monthIndex === 11 && d === 13) return;
 
-        const li = document.createElement('li');
-        li.className = 'ayyamul-item';
+        sunnahFasts.push({
+            hijriDay: d,
+            hijriMonth: monthIndex,
+            label: 'Ayyamul Bidh'
+        });
+    });
 
-        let statusClass = '';
-        if (diffDays < 0) statusClass = 'text-muted'; // Passed
-        else if (diffDays === 0) statusClass = 'text-warning font-bold'; // Today
+    haditsList.push(`"Kekasihku (Rasulullah SAW) mewasiatkan kepadaku tiga hal: puasa tiga hari setiap bulan (Ayyamul Bidh), dua rakaat Dhuha, dan shalat Witir sebelum tidur." <strong>(HR. Bukhari & Muslim)</strong>`);
 
-        li.innerHTML = `
-            <span class="hijri-day ${statusClass}">${i} ${monthName}</span>
-            <span class="masehi-day ${statusClass}">(${gDateStr})</span>
-        `;
-        list.appendChild(li);
+    // 2. Puasa Sunnah Khusus Berdasarkan Bulan
+    if (monthIndex === 0) { // Muharram
+        sunnahFasts.push({ hijriDay: 9, hijriMonth: 0, label: "Tasu'a" });
+        sunnahFasts.push({ hijriDay: 10, hijriMonth: 0, label: "Asyura" });
+        haditsList.push(`"Puasa hari Asyura, aku berharap kepada Allah agar ia menghapuskan dosa setahun yang lalu." <strong>(HR. Muslim)</strong>`);
+    } else if (monthIndex === 7) { // Sya'ban
+        sunnahFasts.push({ hijriDay: 15, hijriMonth: 7, label: "Nisfu Sya'ban" });
+    } else if (monthIndex === 8) { // Ramadhan
+        // Ramadhan puasa wajib, skip list sunnah bulan ini agar tidak campur
+        sunnahFasts = [];
+        haditsList = [`Bulan Ramadhan diwajibkan berpuasa sebulan penuh.`];
+    } else if (monthIndex === 9) { // Syawal
+        // 6 Hari Syawal (mulai tgl 2, karena tgl 1 dilarang)
+        for (let i = 2; i <= 7; i++) {
+            sunnahFasts.push({ hijriDay: i, hijriMonth: 9, label: `Syawal Hari ke-${i - 1}` });
+        }
+        haditsList.push(`"Barangsiapa berpuasa Ramadhan kemudian mengikutinya dengan puasa enam hari di bulan Syawal, maka ia seperti puasa setahun penuh." <strong>(HR. Muslim)</strong>`);
+    } else if (monthIndex === 11) { // Dzulhijjah
+        sunnahFasts.push({ hijriDay: 8, hijriMonth: 11, label: "Tarwiyah" });
+        sunnahFasts.push({ hijriDay: 9, hijriMonth: 11, label: "Arafah" });
+        haditsList.push(`"Puasa hari Arafah, aku berharap kepada Allah agar ia menghapuskan dosa setahun yang lalu dan setahun yang akan datang." <strong>(HR. Muslim)</strong>`);
+    }
+
+    // Sort the dates (just in case)
+    sunnahFasts.sort((a, b) => a.hijriDay - b.hijriDay);
+
+    if (sunnahFasts.length === 0) {
+        list.innerHTML = `<li><span class="text-muted text-small">Tidak ada puasa sunnah khusus (selain Senin-Kamis) di sisa bulan ini.</span></li>`;
+    } else {
+        sunnahFasts.forEach(fast => {
+            const diffDays = fast.hijriDay - day;
+            const targetDate = new Date(today.getTime());
+            targetDate.setDate(today.getDate() + diffDays);
+
+            const masehiOptions = { weekday: 'long', day: 'numeric', month: 'short' };
+            let gDateStr = targetDate.toLocaleDateString(locale, masehiOptions);
+
+            // Format Hari (Masehi)
+            const li = document.createElement('li');
+            li.className = 'ayyamul-item';
+
+            let statusClass = '';
+            if (diffDays < 0) statusClass = 'text-muted'; // Passed
+            else if (diffDays === 0) statusClass = 'text-warning font-bold'; // Today
+
+            li.innerHTML = `
+                <div style="display: flex; flex-direction: column;">
+                    <span class="hijri-day ${statusClass}">${fast.label} (${fast.hijriDay} ${monthName})</span>
+                    <span class="masehi-day ${statusClass} text-small">${gDateStr}</span>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    // Set Hadits Dalil
+    if (haditsList.length > 0) {
+        // Tampilkan semua hadits unik yang berkaitan dengan puasa di bulan tersebut
+        dalilContainer.innerHTML = haditsList.map(h => `<p style="margin-bottom: 0.5rem;">${h}</p>`).join('');
+    } else {
+        dalilContainer.innerHTML = '';
     }
 }
 
@@ -790,14 +880,22 @@ function startCountdown() {
         if (!adhanTimes) return;
 
         const now = new Date();
-        const prayers = [
+        let prayers = [];
+
+        // Add Imsak if it's Ramadhan
+        if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+             const imsakTime = new Date(adhanTimes.fajr.getTime() - 10 * 60000);
+             prayers.push({ id: 'imsak', name: 'imsak', time: imsakTime, labelId: 'Imsak', labelEn: 'Imsak' });
+        }
+
+        prayers.push(
             { id: 'fajr', name: 'fajr', time: adhanTimes.fajr },
             { id: 'sunrise', name: 'sunrise', time: adhanTimes.sunrise },
             { id: 'dhuhr', name: 'dhuhr', time: adhanTimes.dhuhr },
             { id: 'asr', name: 'asr', time: adhanTimes.asr },
-            { id: 'maghrib', name: 'maghrib', time: adhanTimes.maghrib },
+            { id: 'maghrib', name: 'maghrib', time: adhanTimes.maghrib, labelId: 'Buka Puasa / Maghrib', labelEn: 'Iftar / Maghrib' },
             { id: 'isha', name: 'isha', time: adhanTimes.isha }
-        ];
+        );
 
         let nextPrayer = null;
         for (let p of prayers) {
@@ -808,7 +906,12 @@ function startCountdown() {
         }
 
         if (!nextPrayer && tomorrowAdhanTimes) {
-            nextPrayer = { id: 'fajr', name: 'fajr', time: tomorrowAdhanTimes.fajr };
+            if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+                const imsakTomorrow = new Date(tomorrowAdhanTimes.fajr.getTime() - 10 * 60000);
+                nextPrayer = { id: 'imsak', name: 'imsak', time: imsakTomorrow };
+            } else {
+                nextPrayer = { id: 'fajr', name: 'fajr', time: tomorrowAdhanTimes.fajr };
+            }
         }
 
         if (nextPrayer) {
@@ -817,12 +920,37 @@ function startCountdown() {
             const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-            document.getElementById('next-prayer-name').textContent = texts[appState.lang].prayerNames[nextPrayer.name];
-            document.getElementById('countdown-time').textContent =
-                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            let displayName = texts[appState.lang].prayerNames[nextPrayer.name];
+            if (currentHijriDate && currentHijriDate.monthIndex === 8 && nextPrayer.id === 'maghrib') {
+                 displayName = appState.lang === 'id' ? 'Buka Puasa (Maghrib)' : 'Iftar (Maghrib)';
+            }
+            document.getElementById('next-prayer-name').textContent = displayName;
 
-            // Update Timeline Progress
-            updateTimeline(now, prayers, nextPrayer);
+            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('countdown-time').textContent = timeStr;
+
+            // Update Ramadhan banner status
+            if (currentHijriDate && currentHijriDate.monthIndex === 8) {
+                const ramadhanMsgElem = document.getElementById('ramadhan-status-msg');
+                if (nextPrayer.id === 'imsak' || nextPrayer.id === 'fajr') {
+                    ramadhanMsgElem.textContent = appState.lang === 'id' ? `Menuju Imsak dalam ${timeStr}` : `Imsak in ${timeStr}`;
+                } else if (nextPrayer.id === 'maghrib') {
+                    ramadhanMsgElem.textContent = appState.lang === 'id' ? `Waktu berbuka puasa dalam ${timeStr}` : `Iftar in ${timeStr}`;
+                } else {
+                    ramadhanMsgElem.textContent = appState.lang === 'id' ? `Puasa Ramadhan Hari ke-${currentHijriDate.day}` : `Ramadan Day ${currentHijriDate.day}`;
+                }
+            }
+
+            // Update Timeline Progress (pass default 6 prayers without imsak for drawing)
+            const timelinePrayers = [
+                { id: 'fajr', name: 'fajr', time: adhanTimes.fajr },
+                { id: 'sunrise', name: 'sunrise', time: adhanTimes.sunrise },
+                { id: 'dhuhr', name: 'dhuhr', time: adhanTimes.dhuhr },
+                { id: 'asr', name: 'asr', time: adhanTimes.asr },
+                { id: 'maghrib', name: 'maghrib', time: adhanTimes.maghrib },
+                { id: 'isha', name: 'isha', time: adhanTimes.isha }
+            ];
+            updateTimeline(now, timelinePrayers, nextPrayer);
 
             // Trigger Notification exactly when time arrives
             if (hours === 0 && minutes === 0 && seconds === 0 && appState.notifEnabled) {

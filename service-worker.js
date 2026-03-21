@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jadwal-sholat-v1';
+const CACHE_NAME = 'jadwal-sholat-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -7,11 +7,15 @@ const ASSETS_TO_CACHE = [
     './assets/js/db.js',
     './assets/js/script.js',
     './manifest.json',
+    './assets/icons/icon.svg',
+    './assets/icons/icon-192x192.png',
+    './assets/icons/icon-512x512.png',
     'https://cdn.jsdelivr.net/npm/adhan@4.4.3/lib/bundles/adhan.umd.min.js',
     'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js'
 ];
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
         .then((cache) => {
@@ -55,6 +59,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then((cacheNames) => {

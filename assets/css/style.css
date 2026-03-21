@@ -1,5 +1,9 @@
 /* style.css - Main Stylesheet */
 
+.hidden {
+    display: none !important;
+}
+
 /* --- CSS Variables (Theme Base) --- */
 :root {
     /* Core Colors - Islamic Minimal */
@@ -763,14 +767,18 @@ body.tv-mode .prayer-time { font-size: 3rem; }
 .arc-timeline-container {
     position: relative;
     width: 100%;
-    height: 120px; /* Reduced height since we have no text */
-    overflow: hidden;
+    height: auto;
+    aspect-ratio: 2 / 1;
+    max-height: 200px;
     margin-top: 1rem;
+    display: flex;
+    justify-content: center;
 }
 
 .arc-svg {
     width: 100%;
     height: 100%;
+    max-width: 400px;
     overflow: visible;
 }
 
@@ -823,6 +831,7 @@ body.tv-mode .prayer-time { font-size: 3rem; }
     z-index: 10;
     transform: translate(-50%, -50%); /* Center on the x/y coordinates */
     transition: left 1s linear, top 1s linear;
+    pointer-events: none;
 }
 
 .sun-indicator-arc.hidden {
@@ -832,6 +841,14 @@ body.tv-mode .prayer-time { font-size: 3rem; }
 .sun-indicator-arc svg {
     width: 18px;
     height: 18px;
+}
+
+/* Container to handle responsive absolute positioning correctly with max-width */
+.arc-timeline-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
 }
 
 .prayer-card .status-badge {
