@@ -17,7 +17,7 @@ const texts = {
         appTitle: "Jadwal Sholat",
         locationDetecting: "Mendeteksi lokasi...",
         nextPrayerLabel: "Menuju Waktu Berikutnya",
-        jadwalTitle: "Waktu Sholat Hari Ini",
+        jadwalTitle: "Sholat Hari Ini",
         printBtnText: "Print",
         prohibitedMsgSafe: "Status: Aman (Bukan waktu terlarang sholat)",
         prohibitedMsgDanger: "Peringatan: Memasuki waktu terlarang sholat.",
@@ -58,7 +58,7 @@ const texts = {
         appTitle: "Prayer Times",
         locationDetecting: "Detecting location...",
         nextPrayerLabel: "Next Prayer In",
-        jadwalTitle: "Today's Prayer Times",
+        jadwalTitle: "Today's Prayers",
         printBtnText: "Print",
         prohibitedMsgSafe: "Status: Safe (Not a prohibited prayer time)",
         prohibitedMsgDanger: "Warning: Entering prohibited prayer time.",
@@ -857,70 +857,151 @@ function startCountdown() {
 function updateTimeline(now, prayers, nextPrayer) {
     if (!adhanTimes) return;
 
-    const timelineProgress = document.querySelector('.timeline-progress-new');
-    const labelsContainer = document.querySelector('.timeline-labels-new');
+    const arcBg = document.getElementById('arc-path-bg');
+    const arcProgress = document.getElementById('arc-path-progress');
+    const sunIndicator = document.getElementById('sun-indicator-arc');
+    const prayerPointsGroup = document.getElementById('prayer-points-group');
+    const prohibitedArcsGroup = document.getElementById('prohibited-arcs-group');
 
-    if (!timelineProgress || !labelsContainer) return;
+    if (!arcBg || !arcProgress || !sunIndicator) return;
 
-    // Include all 6 prayer times in the timeline
+    const pathLength = arcBg.getTotalLength();
+
+    // SVG Coordinate Mapping Helpers
+    const getPointAtPercent = (percent) => {
+        // Clamp between 0 and 1
+        percent = Math.max(0, Math.min(1, percent));
+        const distance = percent * pathLength;
+        return arcBg.getPointAtLength(distance);
+    };
+
     const startTime = adhanTimes.fajr.getTime();
     const endTime = adhanTimes.isha.getTime();
+    const totalDuration = endTime - startTime;
 
+    let currentPercent = 0;
     if (now.getTime() < startTime) {
-        timelineProgress.style.width = '0%';
+        currentPercent = 0;
     } else if (now.getTime() > endTime) {
-        timelineProgress.style.width = '100%';
+        currentPercent = 1;
     } else {
-        const totalDuration = endTime - startTime;
-        const currentElapsed = now.getTime() - startTime;
-        const percentage = (currentElapsed / totalDuration) * 100;
-        timelineProgress.style.width = `${percentage}%`;
+        currentPercent = (now.getTime() - startTime) / totalDuration;
     }
 
-    if (labelsContainer.children.length === 0) {
-        labelsContainer.innerHTML = '';
+    // 1. Update Progress Line
+    arcProgress.style.strokeDasharray = `${currentPercent * pathLength} ${pathLength}`;
 
+    // 2. Position the Sun Indicator
+    const sunPoint = getPointAtPercent(currentPercent);
+    sunIndicator.classList.remove('hidden');
+    // We position it based on percentages within the relative container.
+    // The SVG viewport is 0 0 100 50, so x is % directly, y is (y/50)*100 %
+    sunIndicator.style.left = `${sunPoint.x}%`;
+    sunIndicator.style.top = `${(sunPoint.y / 50) * 100}%`;
+
+    // 3. Draw Points and Prohibited Segments only once
+    if (prayerPointsGroup.children.length === 0) {
+        prayerPointsGroup.innerHTML = '';
+        prohibitedArcsGroup.innerHTML = '';
+
+        // Draw Prohibited Segments First (so they sit below points)
+        // 1. Sunrise + 15 mins
+        const syuruqEnd = new Date(adhanTimes.sunrise);
+        syuruqEnd.setMinutes(syuruqEnd.getMinutes() + 15);
+        drawProhibitedArc(adhanTimes.sunrise.getTime(), syuruqEnd.getTime(), startTime, totalDuration, pathLength, prohibitedArcsGroup, arcBg);
+
+        // 2. Zenith -5 to +5 mins
+        const zenithStart = new Date(adhanTimes.dhuhr);
+        zenithStart.setMinutes(zenithStart.getMinutes() - 5);
+        const zenithEnd = new Date(adhanTimes.dhuhr);
+        zenithEnd.setMinutes(zenithEnd.getMinutes() + 5);
+        drawProhibitedArc(zenithStart.getTime(), zenithEnd.getTime(), startTime, totalDuration, pathLength, prohibitedArcsGroup, arcBg);
+
+        // 3. Maghrib - 15 mins
+        const sunsetStart = new Date(adhanTimes.maghrib);
+        sunsetStart.setMinutes(sunsetStart.getMinutes() - 15);
+        drawProhibitedArc(sunsetStart.getTime(), adhanTimes.maghrib.getTime(), startTime, totalDuration, pathLength, prohibitedArcsGroup, arcBg);
+
+
+        // Draw Prayer Points
         const timelinePrayers = [
-            { id: 'fajr', name: texts[appState.lang].prayerNames.fajr, time: adhanTimes.fajr },
-            { id: 'sunrise', name: texts[appState.lang].prayerNames.sunrise, time: adhanTimes.sunrise },
-            { id: 'dhuhr', name: texts[appState.lang].prayerNames.dhuhr, time: adhanTimes.dhuhr },
-            { id: 'asr', name: texts[appState.lang].prayerNames.asr, time: adhanTimes.asr },
-            { id: 'maghrib', name: texts[appState.lang].prayerNames.maghrib, time: adhanTimes.maghrib },
-            { id: 'isha', name: texts[appState.lang].prayerNames.isha, time: adhanTimes.isha }
+            { id: 'fajr', time: adhanTimes.fajr },
+            { id: 'sunrise', time: adhanTimes.sunrise, isProhibited: true },
+            { id: 'dhuhr', time: adhanTimes.dhuhr },
+            { id: 'asr', time: adhanTimes.asr },
+            { id: 'maghrib', time: adhanTimes.maghrib },
+            { id: 'isha', time: adhanTimes.isha }
         ];
 
-        const totalDuration = endTime - startTime;
+        const svgNS = "http://www.w3.org/2000/svg";
 
-        timelinePrayers.forEach((p, index) => {
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'timeline-label';
+        timelinePrayers.forEach((p) => {
+            const pct = (p.time.getTime() - startTime) / totalDuration;
+            const pt = getPointAtPercent(pct);
 
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'name';
-            nameSpan.textContent = p.name;
+            const circle = document.createElementNS(svgNS, "circle");
+            circle.setAttribute("cx", pt.x);
+            circle.setAttribute("cy", pt.y);
+            circle.setAttribute("r", "2"); // Radius in SVG coordinate system
 
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'time';
-            timeSpan.textContent = formatTime(p.time);
+            let classes = "prayer-point";
+            if (p.isProhibited) classes += " prohibited";
+            // Check if past
+            if (now.getTime() >= p.time.getTime()) classes += " past";
 
-            labelDiv.appendChild(nameSpan);
-            labelDiv.appendChild(timeSpan);
+            circle.setAttribute("class", classes);
+            circle.dataset.id = p.id;
 
-            let leftPercent = ((p.time.getTime() - startTime) / totalDuration) * 100;
-            // Bound between 0 and 100
-            leftPercent = Math.max(0, Math.min(100, leftPercent));
-            labelDiv.style.left = `${leftPercent}%`;
+            prayerPointsGroup.appendChild(circle);
+        });
+    } else {
+        // Just update past state for existing points
+        const points = prayerPointsGroup.querySelectorAll('.prayer-point');
+        const timelinePrayers = [
+            { id: 'fajr', time: adhanTimes.fajr },
+            { id: 'sunrise', time: adhanTimes.sunrise },
+            { id: 'dhuhr', time: adhanTimes.dhuhr },
+            { id: 'asr', time: adhanTimes.asr },
+            { id: 'maghrib', time: adhanTimes.maghrib },
+            { id: 'isha', time: adhanTimes.isha }
+        ];
 
-            // Handle edge overlaps for labels
-            if (index === 0) {
-                labelDiv.style.transform = 'translateX(0)';
-            } else if (index === timelinePrayers.length - 1) {
-                labelDiv.style.transform = 'translateX(-100%)';
+        points.forEach(circle => {
+            const id = circle.dataset.id;
+            const prayer = timelinePrayers.find(p => p.id === id);
+            if (prayer && now.getTime() >= prayer.time.getTime()) {
+                circle.classList.add('past');
             }
-
-            labelsContainer.appendChild(labelDiv);
         });
     }
+}
+
+function drawProhibitedArc(startMs, endMs, timelineStart, totalDuration, pathLength, group, arcBg) {
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    // Clamp to timeline boundaries
+    startMs = Math.max(timelineStart, startMs);
+    endMs = Math.min(timelineStart + totalDuration, endMs);
+    if (startMs >= endMs) return;
+
+    const startPct = (startMs - timelineStart) / totalDuration;
+    const endPct = (endMs - timelineStart) / totalDuration;
+
+    // We can simulate an arc segment by creating a path identical to the background arc,
+    // but using stroke-dasharray and stroke-dashoffset to only show the relevant segment.
+    const segmentLength = (endPct - startPct) * pathLength;
+    const offset = -(startPct * pathLength);
+
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", "M 5,50 A 45,45 0 0,1 95,50");
+    path.setAttribute("fill", "none");
+    path.setAttribute("class", "arc-prohibited-segment");
+
+    // dasharray: length of segment, length of rest of path
+    path.style.strokeDasharray = `${segmentLength} ${pathLength}`;
+    path.style.strokeDashoffset = offset;
+
+    group.appendChild(path);
 }
 
 
