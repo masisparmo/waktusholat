@@ -199,24 +199,26 @@
                     <h3>TIMELINE MATAHARI</h3>
                 </div>
                 <div class="arc-timeline-container">
-                    <svg class="arc-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
-                        <!-- Background arc -->
-                        <path id="arc-path-bg" class="arc-path-bg" d="M 5,50 A 45,45 0 0,1 95,50" fill="none" />
+                    <div class="arc-timeline-wrapper">
+                        <svg class="arc-svg" viewBox="0 0 100 50" preserveAspectRatio="xMidYMax meet">
+                            <!-- Background arc -->
+                            <path id="arc-path-bg" class="arc-path-bg" d="M 5,50 A 45,45 0 0,1 95,50" fill="none" />
 
-                        <!-- Prohibited times arcs (populated by JS) -->
-                        <g id="prohibited-arcs-group"></g>
+                            <!-- Prohibited times arcs (populated by JS) -->
+                            <g id="prohibited-arcs-group"></g>
 
-                        <!-- Progress arc -->
-                        <path id="arc-path-progress" class="arc-path-progress" d="M 5,50 A 45,45 0 0,1 95,50" fill="none" />
+                            <!-- Progress arc -->
+                            <path id="arc-path-progress" class="arc-path-progress" d="M 5,50 A 45,45 0 0,1 95,50" fill="none" />
 
-                        <!-- Prayer points (populated by JS) -->
-                        <g id="prayer-points-group"></g>
+                            <!-- Prayer points (populated by JS) -->
+                            <g id="prayer-points-group"></g>
 
-                    </svg>
+                        </svg>
 
-                    <!-- The sun icon that follows the path -->
-                    <div id="sun-indicator-arc" class="sun-indicator-arc hidden">
-                        <svg viewBox="0 0 24 24" fill="var(--gold-500)" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        <!-- The sun icon that follows the path -->
+                        <div id="sun-indicator-arc" class="sun-indicator-arc hidden">
+                            <svg viewBox="0 0 24 24" fill="var(--gold-500)" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -225,10 +227,13 @@
         <!-- Mini Calendar / Widget -->
         <section class="widget-section">
             <article class="widget-card">
-                <h3 id="widget-ayyamul-title">Ayyamul Bidh Bulan Ini</h3>
-                <ul id="ayyamul-list" class="ayyamul-list">
+                <h3 id="widget-ayyamul-title">Puasa Sunnah Bulan Ini</h3>
+                <ul id="ayyamul-list" class="ayyamul-list mb-1">
                     <li>Memuat data...</li>
                 </ul>
+                <div id="puasa-sunnah-dalil" class="text-small text-muted mt-2" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; font-style: italic;">
+                    <!-- Dalil akan dimasukkan oleh JS -->
+                </div>
             </article>
         </section>
     </main>
