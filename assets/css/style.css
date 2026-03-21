@@ -1,5 +1,9 @@
 /* style.css - Main Stylesheet */
 
+.hidden {
+    display: none !important;
+}
+
 /* --- CSS Variables (Theme Base) --- */
 :root {
     /* Core Colors - Islamic Minimal */
